@@ -1,5 +1,6 @@
 package com.greenlink.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,5 +32,6 @@ public class DeliveryOrder extends BaseEntity {
     // ... existing fields ...
     @ManyToOne
     @JoinColumn(name = "route_id")
+    @JsonBackReference
     private Route route;
 }

@@ -1,5 +1,6 @@
 package com.greenlink.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,5 +24,6 @@ public class Route extends BaseEntity {
     // A Route has many Orders.
     // "mappedBy" tells Hibernate: "Look at the 'route' field in DeliveryOrder to find the link."
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<DeliveryOrder> orders = new ArrayList<>();
 }
