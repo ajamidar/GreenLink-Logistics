@@ -1,4 +1,4 @@
--- 1. Create the Routes table (Corrected with organization_id)
+-- 1. Create the Routes table
 CREATE TABLE routes (
                         id UUID PRIMARY KEY,
                         organization_id UUID NOT NULL,

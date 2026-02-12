@@ -1,6 +1,15 @@
 version: '3.8'
-
 services:
+  osrm:
+    image: osrm/osrm-backend
+    container_name: osrm-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./osrm-data:/data
+    command: "osrm-routed --algorithm mld /data/new-york.osrm"
+
   postgres:
     image: postgres:15-alpine
     container_name: greenlink_db
@@ -9,10 +18,16 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password123
     ports:
-      - "5433:5432"
+      - "5433:5432" 
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8081:8080"
 
 volumes:
   postgres_data:

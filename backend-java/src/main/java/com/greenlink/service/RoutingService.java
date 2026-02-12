@@ -81,7 +81,6 @@ public class RoutingService {
         newRoute.setStatus("PLANNED");
         newRoute.setVehicle(vehicles.get(0));
 
-        // --- THE FIX ---
         // We use the static UUID instead of the String "org-1"
         newRoute.setOrganizationId(DEFAULT_ORG_ID);
         // ---------------
