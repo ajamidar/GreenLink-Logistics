@@ -24,7 +24,7 @@ export default function Sidebar() {
       <div className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-between bg-white border-b border-slate-200 px-4 md:hidden">
         <div className="flex items-center gap-1 font-bold text-slate-800 hover:text-slate-700">
           {/* Mobile Logo */}
-          <div className="relative h-8 w-8 items-center justify-center">
+          <div className="relative h-10 w-10 items-center justify-center">
             <Image 
               src="/logo.png" 
               alt="Green Link Logo" 
@@ -32,7 +32,7 @@ export default function Sidebar() {
               className="object-contain pb-0.5" 
             />
           </div>
-          <span>Green Link</span>
+          <span className="text-lg">Green Link</span>
         </div>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
