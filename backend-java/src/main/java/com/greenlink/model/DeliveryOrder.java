@@ -18,6 +18,9 @@ public class DeliveryOrder extends BaseEntity {
     @Column(nullable = false)
     private Double longitude;
 
+    @Column(length = 500)
+    private String address;
+
     @Column(nullable = false)
     private Integer weightKg;
 
@@ -31,7 +34,7 @@ public class DeliveryOrder extends BaseEntity {
 
     // ... existing fields ...
     @ManyToOne
-    @JoinColumn(name = "route_id")
+    @JoinColumn(name = "route_id", nullable = true)
     @JsonBackReference
     private Route route;
 }

@@ -66,3 +66,92 @@ def solve_route(orders: List[Dict], vehicle: Dict):
             print(f" -> Added Order {nearest_order['id']} ({min_distance:.1f} meters)")
 
     return route_path
+
+
+def solve_multi_vehicle(orders: List[Dict], vehicles: List[Dict]):
+    unassigned = orders.copy()
+    routes = []
+
+    # 1) Global assignment: pick the nearest vehicle start for each order (capacity-aware).
+    vehicle_state = []
+    for vehicle in vehicles:
+        capacity = vehicle.get("capacityKg")
+        remaining_capacity = capacity if capacity is not None else float("inf")
+        start_lat = vehicle.get("startLat") if vehicle.get("startLat") else 40.7128
+        start_lon = vehicle.get("startLon") if vehicle.get("startLon") else -74.0060
+        vehicle_state.append({
+            "vehicle": vehicle,
+            "remaining_capacity": remaining_capacity,
+            "start_lat": start_lat,
+            "start_lon": start_lon,
+            "assigned": []
+        })
+
+    while unassigned:
+        best = None
+        best_distance = float("inf")
+
+        for order in unassigned:
+            order_weight = order.get("weightKg") or order.get("weight") or 0
+            for state in vehicle_state:
+                if order_weight > state["remaining_capacity"]:
+                    continue
+
+                dist = get_osrm_distance(
+                    state["start_lat"], state["start_lon"],
+                    order["latitude"], order["longitude"]
+                )
+
+                if dist < best_distance:
+                    best_distance = dist
+                    best = (order, state)
+
+        if best is None:
+            break
+
+        order, state = best
+        state["assigned"].append(order)
+        order_weight = order.get("weightKg") or order.get("weight") or 0
+        state["remaining_capacity"] -= order_weight
+        unassigned.remove(order)
+
+    # 2) Build per-vehicle routes with nearest-neighbor on assigned orders.
+    for state in vehicle_state:
+        vehicle = state["vehicle"]
+        assigned = state["assigned"]
+        if not assigned:
+            continue
+
+        current_lat = state["start_lat"]
+        current_lon = state["start_lon"]
+        unvisited = assigned.copy()
+        vehicle_route = []
+
+        while unvisited:
+            nearest_order = None
+            min_distance = float("inf")
+
+            for order in unvisited:
+                dist = get_osrm_distance(
+                    current_lat, current_lon,
+                    order["latitude"], order["longitude"]
+                )
+
+                if dist < min_distance:
+                    min_distance = dist
+                    nearest_order = order
+
+            if nearest_order is None:
+                break
+
+            vehicle_route.append(nearest_order)
+            unvisited.remove(nearest_order)
+            current_lat = nearest_order["latitude"]
+            current_lon = nearest_order["longitude"]
+
+        routes.append({
+            "vehicleId": vehicle.get("id"),
+            "stops": vehicle_route
+        })
+
+    return routes

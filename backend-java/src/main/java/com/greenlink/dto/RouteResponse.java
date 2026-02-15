@@ -8,8 +8,13 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 public class RouteResponse {
-    // Python sends: {"route": [ ... ]}
-    // We map strictly to that structure.
-    // We use Map<String, Object> because the Python object is flexible.
-    private List<Map<String, Object>> route;
+    // Python sends: {"routes": [{"vehicleId": "...", "stops": [ ... ]}, ...]}
+    private List<RoutePlan> routes;
+
+    @Data
+    @NoArgsConstructor
+    public static class RoutePlan {
+        private String vehicleId;
+        private List<Map<String, Object>> stops;
+    }
 }

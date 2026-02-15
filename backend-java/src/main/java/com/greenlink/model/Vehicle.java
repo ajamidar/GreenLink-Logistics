@@ -25,4 +25,7 @@ public class Vehicle extends BaseEntity {
 
     private Double startLat;
     private Double startLon;
+
+    @Column(length = 500)
+    private String address;
 }

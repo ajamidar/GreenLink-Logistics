@@ -59,20 +59,18 @@ def solve(data: RouteRequest):
 
         # 1. Convert models to dictionaries for solver.py
         orders_list = [o.model_dump() for o in data.orders]
-        # Use the first vehicle if available
-        vehicle_dict = data.vehicles[0].model_dump() if data.vehicles else {}
+        vehicles_list = [v.model_dump() for v in data.vehicles]
 
         print(f"Sample order: {orders_list[0] if orders_list else 'None'}")
-        print(f"Vehicle: {vehicle_dict}")
+        print(f"Vehicles: {len(vehicles_list)}")
 
         # 2. Call solver.py
-        result = solver.solve_route(orders_list, vehicle_dict)
+        result = solver.solve_multi_vehicle(orders_list, vehicles_list)
 
-        print(f"--- Optimization complete: {len(result)} stops ---")
+        print(f"--- Optimization complete: {len(result)} routes ---")
 
-        # 3. CRITICAL: Wrap in "route" key to match RouteResponse.java
-        # RouteResponse.java expects: { "route": [ ... ] }
-        return {"route": result}
+        # 3. Return multi-route structure
+        return {"routes": result}
 
     except Exception as e:
         print(f"Solver Error: {e}")

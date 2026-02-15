@@ -39,3 +39,45 @@ export const optimizeRoutes = async (): Promise<Route[]> => {
     const response = await apiClient.post<Route[]>('/routes/optimize');
     return response.data;
 };
+
+export async function deleteOrder(id: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to delete order with id ${id}`);
+    }
+}
+
+export async function createOrder(payload: {
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+    weightKg: number;
+    serviceDurationMin: number;
+}): Promise<Order> {
+    const response = await apiClient.post<Order>('/orders', payload);
+    return response.data;
+}
+
+export async function createVehicle(payload: {
+    address?: string;
+    capacityKg: number;
+    endShiftMinutes: number;
+    name: string;
+    organizationId: string;
+    startLat?: number;
+    startLon?: number;
+    startShiftMinutes: number;
+    status?: Vehicle["status"];
+}): Promise<Vehicle> {
+    const response = await apiClient.post<Vehicle>('/vehicles', payload);
+    return response.data;
+}
+
+export async function deleteVehicle(id: string): Promise<void> {
+    const response = await apiClient.delete(`/vehicles/${id}`);
+    if (response.status !== 200 && response.status !== 204) {
+        throw new Error(`Failed to delete vehicle with id ${id}`);
+    }
+}

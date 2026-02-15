@@ -7,6 +7,7 @@ export interface Order {
   serviceDurationMin: number;
   latitude: number;
   longitude: number;
+  address?: string;
   status: "UNASSIGNED" | "ASSIGNED" | "DELIVERED"; //default 'UNASSIGNED'
   routeId?: string; // From V3
 }
@@ -20,13 +21,16 @@ export interface Vehicle {
   startLon: number;
   startShiftMinutes: number;
   endShiftMinutes: number;
+  address?: string;
+  status?: "AVAILABLE" | "IN_TRANSIT" | "MAINTENANCE";
   // status?: "IDLE"; // To be considered in the future, but not currently defined in V1 SQL
 }
 
 export interface Route {
   id: string;
   organizationId: string; // From V3
-  vehicleId: string;
+  vehicleId?: string;
+  vehicle?: Vehicle;
   status: string; // V3 defines this as VARCHAR(50)
   stops?: RouteStop[]; // Virtual field (list of orders in this route)
   orders?: RouteStop[]; // Optional field to hold assigned orders for easier access in the frontend

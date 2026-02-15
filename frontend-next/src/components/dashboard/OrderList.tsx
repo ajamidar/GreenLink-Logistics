@@ -44,8 +44,10 @@ export default function OrderList({ orders }: OrderListProps) {
               <div className="text-xs text-slate-500 space-y-1">
                 <div className="flex items-center gap-1">
                   <MapPin size={12} />
-                  <span>
-                    {order.latitude.toFixed(4)}, {order.longitude.toFixed(4)}
+                  <span className="truncate max-w-[220px]">
+                    {order.address && order.address.trim()
+                      ? order.address
+                      : `${order.latitude.toFixed(4)}, ${order.longitude.toFixed(4)}`}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">

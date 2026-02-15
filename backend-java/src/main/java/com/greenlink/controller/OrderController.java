@@ -1,7 +1,7 @@
 package com.greenlink.controller;
 
 import com.greenlink.model.DeliveryOrder;
-import com.greenlink.repository.OrderRepository;
+import com.greenlink.service.OrderService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,29 +11,24 @@ import java.util.UUID;
 @RequestMapping("/api/orders")
 public class OrderController {
 
-    private final OrderRepository orderRepository;
+    private final OrderService orderService;
 
-    public OrderController(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
     }
 
     @GetMapping
     public List<DeliveryOrder> getAllOrders() {
-        return orderRepository.findAll();
+        return orderService.getAllOrders();
     }
 
     @PostMapping
     public DeliveryOrder createOrder(@RequestBody DeliveryOrder order) {
-        // Safety check for Organization ID
-        if (order.getOrganizationId() == null) {
-            order.setOrganizationId(UUID.fromString("11111111-1111-1111-1111-111111111111"));
-        }
+        return orderService.createOrder(order);
+    }
 
-        // Safety check for Status (The fix for your error)
-        if (order.getStatus() == null) {
-            order.setStatus("UNASSIGNED");
-        }
-
-        return orderRepository.save(order);
+    @DeleteMapping("/{id}")
+    public void deleteOrder(@PathVariable UUID id) {
+        orderService.deleteOrder(id);
     }
 }

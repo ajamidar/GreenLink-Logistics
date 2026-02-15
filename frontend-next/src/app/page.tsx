@@ -2,8 +2,8 @@
 "use client";
 
 import OrderList from "@/components/dashboard/OrderList";
-import { Order, Route } from "@/lib/types";
-import { fetchOrders, optimizeRoutes } from "@/lib/api"; 
+import { Order, Route, Vehicle } from "@/lib/types";
+import { fetchOrders, fetchVehicles, optimizeRoutes } from "@/lib/api"; 
 import { useState, useEffect } from "react";
 import { Zap, RefreshCw } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -17,6 +17,7 @@ const Map = dynamic(() => import("@/components/dashboard/Map"), {
 export default function Home() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [routes, setRoutes] = useState<Route[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [optimizing, setOptimizing] = useState(false);
   const [mobileView, setMobileView] = useState<"orders" | "map">("orders");
@@ -26,8 +27,12 @@ export default function Home() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const data = await fetchOrders(); 
-      setOrders(data);
+      const [orderData, vehicleData] = await Promise.all([
+        fetchOrders(),
+        fetchVehicles(),
+      ]);
+      setOrders(orderData);
+      setVehicles(vehicleData);
     } catch (error) {
       console.error("Failed to load orders:", error);
       alert("Error connecting to backend.");
@@ -140,7 +145,7 @@ export default function Home() {
           {loading ? <div className="h-full flex items-center justify-center bg-white border border-slate-200 rounded-lg text-slate-400">Loading Orders...</div> : <OrderList orders={orders} />}
         </div>
         <div className={clsx("lg:col-span-2 h-[65vh] sm:h-[70vh] md:h-full bg-white rounded-lg shadow-sm border border-slate-200", mobileView === "map" ? "block" : "hidden", "md:block")}>
-           <Map orders={orders} routes={routes} />
+           <Map orders={orders} routes={routes} vehicles={vehicles} />
         </div>
       </div>
     </div>

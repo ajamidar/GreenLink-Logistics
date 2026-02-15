@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 import java.net.http.HttpClient;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -122,52 +123,64 @@ public class RoutingService {
                 .retrieve()
                 .body(RouteResponse.class);
 
-        // Safety check: Ensure Python actually returned a route
-        if (response == null || response.getRoute() == null || response.getRoute().isEmpty()) {
+        // Safety check: Ensure Python actually returned routes
+        if (response == null || response.getRoutes() == null || response.getRoutes().isEmpty()) {
             return List.of();
         }
 
         // 4. SAVE TO DATABASE
 
-        // A. Create a new Route object
-        Route newRoute = new Route();
-        newRoute.setStatus("PLANNED");
-        newRoute.setVehicle(vehicles.get(0)); // Assign to the first available vehicle
-        newRoute.setOrganizationId(DEFAULT_ORG_ID);
-
-        Route savedRoute = routeRepository.save(newRoute);
-
-        // B. Link the Orders to this Route in the order Python sorted them
-        List<Map<String, Object>> sortedStops = response.getRoute();
-
-        // Create a map for quick lookup of our original Order objects by their UUID
         Map<UUID, DeliveryOrder> orderMap = orders.stream()
                 .collect(Collectors.toMap(DeliveryOrder::getId, o -> o));
+        Map<String, Vehicle> vehicleMap = vehicles.stream()
+                .collect(Collectors.toMap(v -> v.getId().toString(), v -> v));
 
-        for (Map<String, Object> stop : sortedStops) {
-            String idStr = (String) stop.get("id");
+        List<Route> savedRoutes = new ArrayList<>();
 
-            if (idStr != null) {
-                try {
-                    UUID id = UUID.fromString(idStr);
-                    DeliveryOrder order = orderMap.get(id);
+        for (RouteResponse.RoutePlan routePlan : response.getRoutes()) {
+            String vehicleId = routePlan.getVehicleId();
+            Vehicle vehicle = vehicleId != null ? vehicleMap.get(vehicleId) : null;
+            if (vehicle == null) {
+                vehicle = vehicles.get(0);
+            }
 
-                    if (order != null) {
-                        // Link order to the new route and update database
-                        order.setRoute(savedRoute);
-                        order.setStatus("ASSIGNED"); // Update order status
-                        orderRepository.save(order);
-                        
-                        // Add to route's orders collection so it's included in the response
-                        savedRoute.getOrders().add(order);
+            Route newRoute = new Route();
+            newRoute.setStatus("PLANNED");
+            newRoute.setVehicle(vehicle);
+            newRoute.setOrganizationId(DEFAULT_ORG_ID);
+
+            Route savedRoute = routeRepository.save(newRoute);
+
+            List<Map<String, Object>> sortedStops = routePlan.getStops();
+            if (sortedStops == null) {
+                savedRoutes.add(savedRoute);
+                continue;
+            }
+
+            for (Map<String, Object> stop : sortedStops) {
+                String idStr = (String) stop.get("id");
+
+                if (idStr != null) {
+                    try {
+                        UUID id = UUID.fromString(idStr);
+                        DeliveryOrder order = orderMap.get(id);
+
+                        if (order != null) {
+                            order.setRoute(savedRoute);
+                            order.setStatus("ASSIGNED");
+                            orderRepository.save(order);
+                            savedRoute.getOrders().add(order);
+                        }
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("Skipping invalid UUID from Python: " + idStr);
                     }
-                } catch (IllegalArgumentException e) {
-                    System.err.println("Skipping invalid UUID from Python: " + idStr);
                 }
             }
+
+            savedRoutes.add(savedRoute);
+            System.out.println("Route created for vehicle " + vehicle.getId() + " with " + savedRoute.getOrders().size() + " orders assigned");
         }
 
-        System.out.println("Route created with " + savedRoute.getOrders().size() + " orders assigned");
-        return List.of(savedRoute);
+        return savedRoutes;
     }
 }

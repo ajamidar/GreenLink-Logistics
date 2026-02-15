@@ -2,7 +2,7 @@
 "use client";
 
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
-import { Order, Route } from "@/lib/types";
+import { Order, Route, Vehicle } from "@/lib/types";
 import { useEffect, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -22,17 +22,48 @@ const createIcon = (color: string) => {
   return L.divIcon({ className: "", html, iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -11] });
 };
 
+const createVehicleIcon = () => {
+  const html = `
+    <div style="position: relative; width: 30px; height: 30px;">
+      <div style="
+        position: absolute;
+        top: 1px;
+        left: 1px;
+        width: 28px;
+        height: 28px;
+        background: #eef2ff;
+        border: 2px solid #6366f1;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4338ca" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="7" width="14" height="10" rx="2" ry="2"></rect>
+          <path d="M15 10h4l3 3v4h-7z"></path>
+          <circle cx="6" cy="18" r="2"></circle>
+          <circle cx="18" cy="18" r="2"></circle>
+        </svg>
+      </div>
+    </div>
+  `;
+  return L.divIcon({ className: "", html, iconSize: [30, 30], iconAnchor: [15, 15], popupAnchor: [0, -12] });
+};
+
 const icons = {
   UNASSIGNED: createIcon("#ef4444"), 
   ASSIGNED: createIcon("#22c55e"),   
+  VEHICLE: createVehicleIcon(),
 };
 
 interface MapProps {
   orders: Order[];
   routes?: Route[]; 
+  vehicles?: Vehicle[];
 }
 
-export default function Map({ orders = [], routes = [] }: MapProps) {
+export default function Map({ orders = [], routes = [], vehicles = [] }: MapProps) {
   const [isClient, setIsClient] = useState(false);
   const [routeGeometries, setRouteGeometries] = useState<globalThis.Map<string, [number, number][]>>(new globalThis.Map());
   const defaultCenter: [number, number] = [40.7128, -74.0060];
@@ -119,6 +150,10 @@ export default function Map({ orders = [], routes = [] }: MapProps) {
         <div className="mt-1 flex items-center gap-2">
           <span className="inline-block h-3 w-3 rounded-full bg-green-500 ring-2 ring-white"></span>
           <span>Assigned</span>
+        </div>
+        <div className="mt-1 flex items-center gap-2">
+          <span className="inline-block h-3 w-3 rounded-full bg-indigo-500 ring-2 ring-white"></span>
+          <span>Vehicle</span>
         </div>
         {routes.length > 0 && (
           <div className="mt-1 flex items-center gap-2">
@@ -207,6 +242,24 @@ export default function Map({ orders = [], routes = [] }: MapProps) {
             </Popup>
           </Marker>
         ))}
+
+        {vehicles
+          .filter((vehicle) => Number.isFinite(vehicle.startLat) && Number.isFinite(vehicle.startLon))
+          .map((vehicle) => (
+            <Marker
+              key={`vehicle-${vehicle.id}`}
+              position={[vehicle.startLat, vehicle.startLon]}
+              icon={icons.VEHICLE}
+            >
+              <Popup>
+                <div className="text-sm">
+                  <p className="font-bold">Vehicle {vehicle.name}</p>
+                  <p>Capacity: {vehicle.capacityKg}kg</p>
+                  <p>Status: {vehicle.status || "AVAILABLE"}</p>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
       </MapContainer>
     </div>
   );
