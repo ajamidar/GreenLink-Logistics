@@ -155,7 +155,11 @@ public class RoutingService {
                     if (order != null) {
                         // Link order to the new route and update database
                         order.setRoute(savedRoute);
+                        order.setStatus("ASSIGNED"); // Update order status
                         orderRepository.save(order);
+                        
+                        // Add to route's orders collection so it's included in the response
+                        savedRoute.getOrders().add(order);
                     }
                 } catch (IllegalArgumentException e) {
                     System.err.println("Skipping invalid UUID from Python: " + idStr);
@@ -163,6 +167,7 @@ public class RoutingService {
             }
         }
 
+        System.out.println("Route created with " + savedRoute.getOrders().size() + " orders assigned");
         return List.of(savedRoute);
     }
 }
