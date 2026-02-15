@@ -23,7 +23,7 @@ public class Route extends BaseEntity {
 
     // A Route has many Orders.
     // "mappedBy" tells Hibernate: "Look at the 'route' field in DeliveryOrder to find the link."
-    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "route", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JsonManagedReference
     private List<DeliveryOrder> orders = new ArrayList<>();
 }

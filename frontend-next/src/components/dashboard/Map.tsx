@@ -66,11 +66,13 @@ interface MapProps {
 export default function Map({ orders = [], routes = [], vehicles = [] }: MapProps) {
   const [isClient, setIsClient] = useState(false);
   const [routeGeometries, setRouteGeometries] = useState<globalThis.Map<string, [number, number][]>>(new globalThis.Map());
+  const [mapKey, setMapKey] = useState(0);
   const defaultCenter: [number, number] = [40.7128, -74.0060];
   const orderById = new globalThis.Map(orders.map((order) => [String(order.id), order]));
 
   useEffect(() => {
     setIsClient(true);
+    setMapKey((prev) => prev + 1);
   }, []);
 
   // Fetch road geometries from OSRM when routes change
@@ -163,7 +165,7 @@ export default function Map({ orders = [], routes = [], vehicles = [] }: MapProp
         )}
       </div>
 
-      <MapContainer center={defaultCenter} zoom={12} style={{ height: "100%", width: "100%" }} scrollWheelZoom={true}>
+      <MapContainer key={mapKey} center={defaultCenter} zoom={12} style={{ height: "100%", width: "100%" }} scrollWheelZoom={true}>
         <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         {/* 1. DRAW ROUTES (LINES) - Following actual roads via OSRM */}

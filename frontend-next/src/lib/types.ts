@@ -38,6 +38,18 @@ export interface Route {
   // totalTimeMinutes?: number;    To be considered in the future, but not currently defined in V3 SQL
 }
 
+export interface Driver {
+  id: string;
+  name: string;
+  licenseId: string;
+  phone: string;
+  homeBase: string;
+  status: "AVAILABLE" | "ON_ROUTE" | "OFF_DUTY";
+  assignedVehicle?: Vehicle;
+  assignedVehicleId?: string;
+  lastCheckIn?: string;
+}
+
 export type RouteStop =
   | Order
   | string

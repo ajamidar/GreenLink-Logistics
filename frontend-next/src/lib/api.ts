@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Order, Route, Vehicle } from "./types";
+import { Driver, Order, Route, Vehicle } from "./types";
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
@@ -79,5 +79,42 @@ export async function deleteVehicle(id: string): Promise<void> {
     const response = await apiClient.delete(`/vehicles/${id}`);
     if (response.status !== 200 && response.status !== 204) {
         throw new Error(`Failed to delete vehicle with id ${id}`);
+    }
+}
+
+export const fetchDrivers = async (): Promise<Driver[]> => {
+    const response = await apiClient.get<Driver[]>('/drivers');
+    return response.data;
+};
+
+export async function createDriver(payload: {
+    name: string;
+    licenseId: string;
+    phone: string;
+    homeBase: string;
+    status: Driver["status"];
+    assignedVehicleId?: string;
+}): Promise<Driver> {
+    const response = await apiClient.post<Driver>('/drivers', payload);
+    return response.data;
+}
+
+export async function updateDriver(id: string, payload: {
+    name?: string;
+    licenseId?: string;
+    phone?: string;
+    homeBase?: string;
+    status?: Driver["status"];
+    assignedVehicleId?: string | null;
+    lastCheckIn?: string | null;
+}): Promise<Driver> {
+    const response = await apiClient.put<Driver>(`/drivers/${id}`, payload);
+    return response.data;
+}
+
+export async function deleteDriver(id: string): Promise<void> {
+    const response = await apiClient.delete(`/drivers/${id}`);
+    if (response.status !== 200 && response.status !== 204) {
+        throw new Error(`Failed to delete driver with id ${id}`);
     }
 }

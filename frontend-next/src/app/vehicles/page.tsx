@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
-import { Order, Route, Vehicle } from "@/lib/types";
-import { fetchVehicles, createVehicle, deleteVehicle, fetchRoutes, fetchOrders } from "@/lib/api";
+import { Driver, Order, Route, Vehicle } from "@/lib/types";
+import { fetchVehicles, createVehicle, deleteVehicle, fetchRoutes, fetchOrders, fetchDrivers } from "@/lib/api";
 import VehicleTable from "@/components/vehicles/VehicleTable";
 import NewVehicleModal from "@/components/vehicles/NewVehicleModal";
 
@@ -15,6 +15,7 @@ export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [routes, setRoutes] = useState<Route[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,14 +28,16 @@ export default function VehiclesPage() {
   const loadVehicles = async () => {
     try {
       setLoading(true);
-      const [vehicleData, routeData, orderData] = await Promise.all([
+      const [vehicleData, routeData, orderData, driverData] = await Promise.all([
         fetchVehicles(),
         fetchRoutes(),
         fetchOrders(),
+        fetchDrivers(),
       ]);
       setVehicles(vehicleData);
       setRoutes(routeData);
       setOrders(orderData);
+      setDrivers(driverData);
       setError(null);
     } catch (err) {
       setError("Failed to load vehicles.");
@@ -77,6 +80,17 @@ export default function VehiclesPage() {
     }
     return map;
   }, [routes]);
+
+  const assignedDriverByVehicleId = useMemo(() => {
+    const map = new Map<string, Driver>();
+    for (const driver of drivers) {
+      const vehicleId = driver.assignedVehicle?.id || driver.assignedVehicleId;
+      if (vehicleId) {
+        map.set(String(vehicleId), driver);
+      }
+    }
+    return map;
+  }, [drivers]);
 
   const handleCreateVehicle = async (payload: {
     licensePlate: string;
@@ -142,6 +156,7 @@ export default function VehiclesPage() {
           vehicles={vehicles}
           onDelete={handleDeleteVehicle}
           assignedOrdersByVehicleId={assignedOrdersByVehicleId}
+          assignedDriverByVehicleId={assignedDriverByVehicleId}
         />
       )}
 

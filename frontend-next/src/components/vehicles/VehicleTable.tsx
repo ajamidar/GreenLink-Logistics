@@ -10,6 +10,7 @@ interface VehicleTableProps {
   vehicles: Vehicle[];
   onDelete: (id: string) => void;
   assignedOrdersByVehicleId?: Map<string, Order[]>;
+  assignedDriverByVehicleId?: Map<string, { name: string }>;
 }
 
 const statusStyles: Record<string, string> = {
@@ -18,7 +19,12 @@ const statusStyles: Record<string, string> = {
   MAINTENANCE: "bg-red-100 text-red-700 border-red-200",
 };
 
-export default function VehicleTable({ vehicles, onDelete, assignedOrdersByVehicleId }: VehicleTableProps) {
+export default function VehicleTable({
+  vehicles,
+  onDelete,
+  assignedOrdersByVehicleId,
+  assignedDriverByVehicleId,
+}: VehicleTableProps) {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   return (
     <div className="rounded-md border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -29,6 +35,7 @@ export default function VehicleTable({ vehicles, onDelete, assignedOrdersByVehic
             <th className="px-6 py-3">License Plate</th>
             <th className="px-6 py-3">Capacity (kg)</th>
             <th className="px-6 py-3">Start Location</th>
+            <th className="px-6 py-3">Driver</th>
             <th className="px-6 py-3">Assigned Orders</th>
             <th className="px-6 py-3">Status</th>
             <th className="px-6 py-3 text-right">Actions</th>
@@ -37,7 +44,7 @@ export default function VehicleTable({ vehicles, onDelete, assignedOrdersByVehic
           <tbody className="divide-y divide-slate-100">
           {vehicles.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
+              <td colSpan={7} className="px-6 py-8 text-center text-slate-400">
                 No vehicles found. Add one to get started.
               </td>
             </tr>
@@ -69,6 +76,10 @@ export default function VehicleTable({ vehicles, onDelete, assignedOrdersByVehic
                     ) : (
                       <span className="text-slate-400">Not set</span>
                     )}
+                  </td>
+                  <td className="px-6 py-4 text-slate-700">
+                    <div className="text-[11px] uppercase text-slate-400 sm:hidden">Driver</div>
+                    {assignedDriverByVehicleId?.get(vehicle.id)?.name || "Unassigned"}
                   </td>
                   <td className="px-6 py-4 text-slate-700">
                     <div className="text-[11px] uppercase text-slate-400 sm:hidden">Assigned Orders</div>

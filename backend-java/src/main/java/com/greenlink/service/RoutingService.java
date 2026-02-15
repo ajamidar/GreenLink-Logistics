@@ -128,7 +128,19 @@ public class RoutingService {
             return List.of();
         }
 
-        // 4. SAVE TO DATABASE
+        // 4. CLEAR EXISTING ROUTES
+        for (DeliveryOrder order : orders) {
+            if (order.getRoute() != null) {
+                order.setRoute(null);
+            }
+            if (!"UNASSIGNED".equals(order.getStatus())) {
+                order.setStatus("UNASSIGNED");
+            }
+        }
+        orderRepository.saveAll(orders);
+        routeRepository.deleteAll();
+
+        // 5. SAVE TO DATABASE
 
         Map<UUID, DeliveryOrder> orderMap = orders.stream()
                 .collect(Collectors.toMap(DeliveryOrder::getId, o -> o));

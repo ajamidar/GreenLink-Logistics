@@ -3,7 +3,7 @@
 
 import OrderList from "@/components/dashboard/OrderList";
 import { Order, Route, Vehicle } from "@/lib/types";
-import { fetchOrders, fetchVehicles, optimizeRoutes } from "@/lib/api"; 
+import { fetchOrders, fetchVehicles, fetchRoutes, optimizeRoutes } from "@/lib/api"; 
 import { useState, useEffect } from "react";
 import { Zap, RefreshCw } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -21,18 +21,35 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [optimizing, setOptimizing] = useState(false);
   const [mobileView, setMobileView] = useState<"orders" | "map">("orders");
+  const [isClient, setIsClient] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { 
+    setIsClient(true);
+    
+    // Detect mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    loadData();
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [orderData, vehicleData] = await Promise.all([
+      const [orderData, vehicleData, routeData] = await Promise.all([
         fetchOrders(),
         fetchVehicles(),
+        fetchRoutes(),
       ]);
       setOrders(orderData);
       setVehicles(vehicleData);
+      setRoutes(routeData);
     } catch (error) {
       console.error("Failed to load orders:", error);
       alert("Error connecting to backend.");
@@ -92,8 +109,9 @@ export default function Home() {
           const isAssigned = assignedIds.has(String(order.id));
           if (isAssigned) {
             console.log(`✅ Order ${order.id} is ASSIGNED`);
+            return { ...order, status: "ASSIGNED" as const };
           }
-          return isAssigned ? { ...order, status: "ASSIGNED" } : order;
+          return order;
         });
         console.log("Updated orders:", updated);
         return updated;
@@ -144,9 +162,11 @@ export default function Home() {
         <div className={clsx("lg:col-span-1 h-[65vh] sm:h-[70vh] md:h-full", mobileView === "orders" ? "block" : "hidden", "md:block")}>
           {loading ? <div className="h-full flex items-center justify-center bg-white border border-slate-200 rounded-lg text-slate-400">Loading Orders...</div> : <OrderList orders={orders} />}
         </div>
-        <div className={clsx("lg:col-span-2 h-[65vh] sm:h-[70vh] md:h-full bg-white rounded-lg shadow-sm border border-slate-200", mobileView === "map" ? "block" : "hidden", "md:block")}>
-           <Map orders={orders} routes={routes} vehicles={vehicles} />
-        </div>
+          <div className={clsx("lg:col-span-2 h-[65vh] sm:h-[70vh] md:h-full bg-white rounded-lg shadow-sm border border-slate-200", mobileView === "map" ? "block" : "hidden", "md:block")}> 
+             {isClient && (mobileView === "map" || !isMobile) ? (
+               <Map orders={orders} routes={routes} vehicles={vehicles} />
+             ) : null}
+          </div>
       </div>
     </div>
   );
