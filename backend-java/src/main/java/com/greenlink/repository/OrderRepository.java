@@ -12,4 +12,8 @@ public interface OrderRepository extends JpaRepository<DeliveryOrder, UUID> {
 
     // Custom capability: Find all orders that are still "UNASSIGNED"
     List<DeliveryOrder> findByStatusAndOrganizationId(String  status, UUID organizationId);
+
+    List<DeliveryOrder> findByOrganizationId(UUID organizationId);
+
+    java.util.Optional<DeliveryOrder> findByIdAndOrganizationId(UUID id, UUID organizationId);
 }

@@ -3,6 +3,7 @@ package com.greenlink.service;
 import com.greenlink.model.Vehicle;
 import com.greenlink.repository.RouteRepository;
 import com.greenlink.repository.VehicleRepository;
+import com.greenlink.security.CurrentUserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,30 +15,29 @@ import java.util.UUID;
 @Service
 public class VehicleService {
 
-    private static final UUID DEFAULT_ORG_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
-
     private final VehicleRepository vehicleRepository;
     private final RouteRepository routeRepository;
     private final GeocodingService geocodingService;
+    private final CurrentUserService currentUserService;
 
     public VehicleService(
             VehicleRepository vehicleRepository,
             RouteRepository routeRepository,
-            GeocodingService geocodingService
+            GeocodingService geocodingService,
+            CurrentUserService currentUserService
     ) {
         this.vehicleRepository = vehicleRepository;
         this.routeRepository = routeRepository;
         this.geocodingService = geocodingService;
+        this.currentUserService = currentUserService;
     }
 
     public List<Vehicle> getAllVehicles() {
-        return vehicleRepository.findAll();
+        return vehicleRepository.findByOrganizationId(currentUserService.requireOrganizationId());
     }
 
     public Vehicle createVehicle(Vehicle vehicle) {
-        if (vehicle.getOrganizationId() == null) {
-            vehicle.setOrganizationId(DEFAULT_ORG_ID);
-        }
+        vehicle.setOrganizationId(currentUserService.requireOrganizationId());
 
         String address = vehicle.getAddress();
         if (address != null) {
@@ -79,11 +79,11 @@ public class VehicleService {
 
     @Transactional
     public void deleteVehicle(UUID id) {
-        if (!vehicleRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle not found.");
-        }
+        UUID organizationId = currentUserService.requireOrganizationId();
+        Vehicle vehicle = vehicleRepository.findByIdAndOrganizationId(id, organizationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle not found."));
 
-        var routes = routeRepository.findByVehicleId(id);
+        var routes = routeRepository.findByVehicleIdAndOrganizationId(id, organizationId);
         if (!routes.isEmpty()) {
             for (var route : routes) {
                 if (route.getOrders() != null) {
@@ -97,6 +97,6 @@ public class VehicleService {
             routeRepository.saveAll(routes);
         }
 
-        vehicleRepository.deleteById(id);
+        vehicleRepository.delete(vehicle);
     }
 }

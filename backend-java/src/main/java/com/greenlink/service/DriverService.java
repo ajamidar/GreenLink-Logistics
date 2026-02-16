@@ -5,6 +5,7 @@ import com.greenlink.model.Driver;
 import com.greenlink.model.Vehicle;
 import com.greenlink.repository.DriverRepository;
 import com.greenlink.repository.VehicleRepository;
+import com.greenlink.security.CurrentUserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,28 +18,29 @@ import java.util.UUID;
 @Service
 public class DriverService {
 
-    private static final UUID DEFAULT_ORG_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
-
     private final DriverRepository driverRepository;
     private final VehicleRepository vehicleRepository;
+    private final CurrentUserService currentUserService;
 
-    public DriverService(DriverRepository driverRepository, VehicleRepository vehicleRepository) {
+    public DriverService(
+            DriverRepository driverRepository,
+            VehicleRepository vehicleRepository,
+            CurrentUserService currentUserService
+    ) {
         this.driverRepository = driverRepository;
         this.vehicleRepository = vehicleRepository;
+        this.currentUserService = currentUserService;
     }
 
     public List<Driver> getAllDrivers() {
-        return driverRepository.findAll();
+        return driverRepository.findByOrganizationId(currentUserService.requireOrganizationId());
     }
 
     @Transactional
     public Driver createDriver(DriverRequest request) {
         Driver driver = new Driver();
         applyRequest(driver, request);
-
-        if (driver.getOrganizationId() == null) {
-            driver.setOrganizationId(DEFAULT_ORG_ID);
-        }
+        driver.setOrganizationId(currentUserService.requireOrganizationId());
 
         if (driver.getLastCheckIn() == null) {
             driver.setLastCheckIn(LocalDateTime.now());
@@ -49,8 +51,9 @@ public class DriverService {
 
     @Transactional
     public Driver updateDriver(UUID id, DriverRequest request) {
-        Driver driver = driverRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Driver not found."));
+        Driver driver = driverRepository
+            .findByIdAndOrganizationId(id, currentUserService.requireOrganizationId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Driver not found."));
 
         applyRequest(driver, request);
 
@@ -58,16 +61,19 @@ public class DriverService {
     }
 
     public void deleteDriver(UUID id) {
-        if (!driverRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Driver not found.");
-        }
+        Driver driver = driverRepository
+                .findByIdAndOrganizationId(id, currentUserService.requireOrganizationId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Driver not found."));
 
-        driverRepository.deleteById(id);
+        driverRepository.delete(driver);
     }
 
     private void applyRequest(Driver driver, DriverRequest request) {
         if (request.getName() != null) {
             driver.setName(request.getName());
+        }
+        if (request.getEmail() != null) {
+            driver.setEmail(request.getEmail());
         }
         if (request.getLicenseId() != null) {
             driver.setLicenseId(request.getLicenseId());
@@ -86,7 +92,8 @@ public class DriverService {
         }
 
         if (request.getAssignedVehicleId() != null) {
-            Vehicle vehicle = vehicleRepository.findById(request.getAssignedVehicleId())
+            Vehicle vehicle = vehicleRepository
+                    .findByIdAndOrganizationId(request.getAssignedVehicleId(), currentUserService.requireOrganizationId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vehicle not found."));
             driver.setAssignedVehicle(vehicle);
         } else {

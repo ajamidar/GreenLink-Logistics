@@ -11,6 +11,7 @@ import com.greenlink.model.Vehicle;
 import com.greenlink.repository.OrderRepository;
 import com.greenlink.repository.RouteRepository;
 import com.greenlink.repository.VehicleRepository;
+import com.greenlink.security.CurrentUserService;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
@@ -32,16 +33,16 @@ public class RoutingService {
     private final RouteRepository routeRepository;
     private final RestClient restClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    // A static UUID for your "Default Organization" so all data stays linked
-    private static final UUID DEFAULT_ORG_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private final CurrentUserService currentUserService;
 
     public RoutingService(VehicleRepository vehicleRepository,
                           OrderRepository orderRepository,
-                          RouteRepository routeRepository) {
+                          RouteRepository routeRepository,
+                          CurrentUserService currentUserService) {
         this.vehicleRepository = vehicleRepository;
         this.orderRepository = orderRepository;
         this.routeRepository = routeRepository;
+        this.currentUserService = currentUserService;
 
         // Create HttpClient that uses HTTP/1.1 (not HTTP/2)
         // This prevents protocol upgrade issues with FastAPI/Uvicorn
@@ -62,9 +63,11 @@ public class RoutingService {
     public List<Route> optimizeRoutes() {
         System.out.println("=== OPTIMIZE ROUTES CALLED ===");
 
+        UUID organizationId = currentUserService.requireOrganizationId();
+
         // 1. Fetch Data
-        List<DeliveryOrder> orders = orderRepository.findAll();
-        List<Vehicle> vehicles = vehicleRepository.findAll();
+        List<DeliveryOrder> orders = orderRepository.findByOrganizationId(organizationId);
+        List<Vehicle> vehicles = vehicleRepository.findByOrganizationId(organizationId);
 
         System.out.println("Found " + orders.size() + " orders and " + vehicles.size() + " vehicles");
 
@@ -138,7 +141,10 @@ public class RoutingService {
             }
         }
         orderRepository.saveAll(orders);
-        routeRepository.deleteAll();
+        List<Route> existingRoutes = routeRepository.findByOrganizationId(organizationId);
+        if (!existingRoutes.isEmpty()) {
+            routeRepository.deleteAll(existingRoutes);
+        }
 
         // 5. SAVE TO DATABASE
 
@@ -159,7 +165,7 @@ public class RoutingService {
             Route newRoute = new Route();
             newRoute.setStatus("PLANNED");
             newRoute.setVehicle(vehicle);
-            newRoute.setOrganizationId(DEFAULT_ORG_ID);
+            newRoute.setOrganizationId(organizationId);
 
             Route savedRoute = routeRepository.save(newRoute);
 

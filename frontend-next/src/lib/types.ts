@@ -41,6 +41,7 @@ export interface Route {
 export interface Driver {
   id: string;
   name: string;
+  email?: string;
   licenseId: string;
   phone: string;
   homeBase: string;

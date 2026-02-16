@@ -10,6 +10,16 @@ const apiClient = axios.create({
   },
 });
 
+apiClient.interceptors.request.use((config) => {
+    if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('gl_token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+    }
+    return config;
+});
+
 // Custom API Functions 
 
 export const fetchVehicles = async (): Promise<Vehicle[]> => {
@@ -41,8 +51,10 @@ export const optimizeRoutes = async (): Promise<Route[]> => {
 };
 
 export async function deleteOrder(id: string): Promise<void> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('gl_token') : null;
     const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
         method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
     if (!response.ok) {
         throw new Error(`Failed to delete order with id ${id}`);
@@ -65,7 +77,6 @@ export async function createVehicle(payload: {
     capacityKg: number;
     endShiftMinutes: number;
     name: string;
-    organizationId: string;
     startLat?: number;
     startLon?: number;
     startShiftMinutes: number;
@@ -89,6 +100,7 @@ export const fetchDrivers = async (): Promise<Driver[]> => {
 
 export async function createDriver(payload: {
     name: string;
+    email?: string;
     licenseId: string;
     phone: string;
     homeBase: string;
@@ -117,4 +129,26 @@ export async function deleteDriver(id: string): Promise<void> {
     if (response.status !== 200 && response.status !== 204) {
         throw new Error(`Failed to delete driver with id ${id}`);
     }
+}
+
+export async function fetchDriverRoute(): Promise<{
+    driverName: string | null;
+    vehicleName: string | null;
+    routeStatus: string | null;
+    estimatedRemainingMinutes?: number | null;
+    stops: Array<{
+        id: string;
+        address: string | null;
+        latitude: number | null;
+        longitude: number | null;
+        status: string;
+        serviceDurationMin?: number | null;
+    }>;
+}> {
+    const response = await apiClient.get('/driver/route');
+    return response.data;
+}
+
+export async function markOrderDelivered(orderId: string): Promise<void> {
+    await apiClient.patch(`/driver/orders/${orderId}/delivered`);
 }

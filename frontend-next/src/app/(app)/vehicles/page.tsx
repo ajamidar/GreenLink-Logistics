@@ -7,7 +7,6 @@ import { fetchVehicles, createVehicle, deleteVehicle, fetchRoutes, fetchOrders, 
 import VehicleTable from "@/components/vehicles/VehicleTable";
 import NewVehicleModal from "@/components/vehicles/NewVehicleModal";
 
-const DEFAULT_ORG_ID = "11111111-1111-1111-1111-111111111111";
 const DEFAULT_START_SHIFT = 480;
 const DEFAULT_END_SHIFT = 1020;
 
@@ -79,7 +78,7 @@ export default function VehiclesPage() {
       }
     }
     return map;
-  }, [routes]);
+  }, [routes, orders]);
 
   const assignedDriverByVehicleId = useMemo(() => {
     const map = new Map<string, Driver>();
@@ -100,7 +99,6 @@ export default function VehiclesPage() {
     try {
       setIsSubmitting(true);
       const created = await createVehicle({
-        organizationId: DEFAULT_ORG_ID,
         name: payload.licensePlate,
         capacityKg: payload.capacityKg,
         address: payload.address,

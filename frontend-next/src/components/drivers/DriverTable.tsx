@@ -76,6 +76,12 @@ export default function DriverTable({ drivers, vehicles, onDelete, onUpdate }: D
                         <span className="inline-flex items-center gap-1">
                           <Phone size={12} /> {driver.phone}
                         </span>
+                        {driver.email ? (
+                          <>
+                            <span className="text-slate-300">|</span>
+                            <span>{driver.email}</span>
+                          </>
+                        ) : null}
                         <span className="text-slate-300">|</span>
                         <span>License {driver.licenseId}</span>
                       </div>

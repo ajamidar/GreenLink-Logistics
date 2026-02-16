@@ -10,4 +10,8 @@ import java.util.UUID;
 @Repository
 public interface RouteRepository extends JpaRepository<Route, UUID> {
     List<Route> findByVehicleId(UUID vehicleId);
+
+    List<Route> findByVehicleIdAndOrganizationId(UUID vehicleId, UUID organizationId);
+
+    List<Route> findByOrganizationId(UUID organizationId);
 }

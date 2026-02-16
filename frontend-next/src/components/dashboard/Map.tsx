@@ -1,7 +1,7 @@
 // src/components/dashboard/Map.tsx
 "use client";
 
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import { Order, Route, Vehicle } from "@/lib/types";
 import { useEffect, useState } from "react";
 import L from "leaflet";
@@ -53,7 +53,8 @@ const createVehicleIcon = () => {
 
 const icons = {
   UNASSIGNED: createIcon("#ef4444"), 
-  ASSIGNED: createIcon("#22c55e"),   
+  ASSIGNED: createIcon("#22c55e"),
+  DELIVERED: createIcon("#38bdf8"),
   VEHICLE: createVehicleIcon(),
 };
 
@@ -61,9 +62,22 @@ interface MapProps {
   orders: Order[];
   routes?: Route[]; 
   vehicles?: Vehicle[];
+  focus?: [number, number];
+  focusZoom?: number;
 }
 
-export default function Map({ orders = [], routes = [], vehicles = [] }: MapProps) {
+function MapFocus({ focus, focusZoom }: { focus?: [number, number]; focusZoom?: number }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!focus) return;
+    map.setView(focus, focusZoom ?? map.getZoom(), { animate: true });
+  }, [focus, focusZoom, map]);
+
+  return null;
+}
+
+export default function Map({ orders = [], routes = [], vehicles = [], focus, focusZoom }: MapProps) {
   const [isClient, setIsClient] = useState(false);
   const [routeGeometries, setRouteGeometries] = useState<globalThis.Map<string, [number, number][]>>(new globalThis.Map());
   const [mapKey, setMapKey] = useState(0);
@@ -154,6 +168,10 @@ export default function Map({ orders = [], routes = [], vehicles = [] }: MapProp
           <span>Assigned</span>
         </div>
         <div className="mt-1 flex items-center gap-2">
+          <span className="inline-block h-3 w-3 rounded-full bg-sky-400 ring-2 ring-white"></span>
+          <span>Delivered</span>
+        </div>
+        <div className="mt-1 flex items-center gap-2">
           <span className="inline-block h-3 w-3 rounded-full bg-indigo-500 ring-2 ring-white"></span>
           <span>Vehicle</span>
         </div>
@@ -167,6 +185,7 @@ export default function Map({ orders = [], routes = [], vehicles = [] }: MapProp
 
       <MapContainer key={mapKey} center={defaultCenter} zoom={12} style={{ height: "100%", width: "100%" }} scrollWheelZoom={true}>
         <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <MapFocus focus={focus} focusZoom={focusZoom} />
 
         {/* 1. DRAW ROUTES (LINES) - Following actual roads via OSRM */}
         {routes.map((route) => {
@@ -233,7 +252,13 @@ export default function Map({ orders = [], routes = [], vehicles = [] }: MapProp
           <Marker 
             key={order.id} 
             position={[order.latitude, order.longitude]}
-            icon={order.status === "ASSIGNED" ? icons.ASSIGNED : icons.UNASSIGNED}
+            icon={
+              order.status === "DELIVERED"
+                ? icons.DELIVERED
+                : order.status === "ASSIGNED"
+                ? icons.ASSIGNED
+                : icons.UNASSIGNED
+            }
           >
             <Popup>
               <div className="text-sm">

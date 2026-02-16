@@ -9,6 +9,7 @@ interface NewDriverModalProps {
   onClose: () => void;
   onCreate: (payload: {
     name: string;
+    email: string;
     phone: string;
     licenseId: string;
     homeBase: string;
@@ -27,6 +28,7 @@ export default function NewDriverModal({
 }: NewDriverModalProps) {
   const [formState, setFormState] = useState({
     name: "",
+    email: "",
     phone: "",
     licenseId: "",
     street: "",
@@ -50,6 +52,7 @@ export default function NewDriverModal({
 
     return {
       name: formState.name.trim(),
+      email: formState.email.trim(),
       phone: formState.phone.trim(),
       licenseId: formState.licenseId.trim(),
       homeBase: address,
@@ -64,6 +67,7 @@ export default function NewDriverModal({
   const isValid = useMemo(() => {
     return (
       parsed.name.length > 0 &&
+      parsed.email.length > 0 &&
       parsed.licenseId.length > 0 &&
       parsed.street.length > 0 &&
       parsed.city.length > 0 &&
@@ -88,6 +92,7 @@ export default function NewDriverModal({
 
     onCreate({
       name: parsed.name,
+      email: parsed.email,
       phone: parsed.phone || "Not provided",
       licenseId: parsed.licenseId,
       homeBase: parsed.homeBase,
@@ -113,6 +118,17 @@ export default function NewDriverModal({
                 onChange={(event) => handleChange("name", event.target.value)}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-emerald-500"
                 placeholder="Jamie Park"
+                required
+              />
+            </label>
+            <label className="space-y-1 text-sm text-slate-600">
+              Driver Email
+              <input
+                type="email"
+                value={formState.email}
+                onChange={(event) => handleChange("email", event.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-emerald-500"
+                placeholder="driver@greenlink.com"
                 required
               />
             </label>

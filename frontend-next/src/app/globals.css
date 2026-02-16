@@ -1,1 +1,29 @@
 @import "tailwindcss";
+
+.bg-landing-grid {
+	background-image:
+		radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.2), transparent 45%),
+		radial-gradient(circle at 80% 30%, rgba(251, 191, 36, 0.15), transparent 50%),
+		linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+	background-size: auto, auto, 72px 72px, 72px 72px;
+}
+
+@keyframes reveal-up {
+	from {
+		opacity: 0;
+		transform: translateY(16px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.reveal {
+	animation: reveal-up 0.8s ease-out both;
+}
+
+.reveal.delay-1 {
+	animation-delay: 0.12s;
+}

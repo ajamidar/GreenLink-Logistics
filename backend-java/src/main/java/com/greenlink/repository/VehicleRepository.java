@@ -13,4 +13,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, UUID> {
     // Custom query: Find all vehicles for a specific company
     // This is CRITICAL for multi-tenancy security later.
     List<Vehicle> findByOrganizationId(UUID organizationId);
+
+    java.util.Optional<Vehicle> findByIdAndOrganizationId(UUID id, UUID organizationId);
 }

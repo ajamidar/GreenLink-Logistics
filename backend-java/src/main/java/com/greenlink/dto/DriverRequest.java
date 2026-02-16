@@ -6,6 +6,7 @@ import java.util.UUID;
 public class DriverRequest {
 
     private String name;
+    private String email;
     private String licenseId;
     private String phone;
     private String homeBase;
@@ -19,6 +20,14 @@ public class DriverRequest {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getLicenseId() {

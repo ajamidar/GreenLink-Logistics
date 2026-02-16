@@ -8,7 +8,7 @@ import clsx from "clsx";
 import Image from "next/image"; // Import the Image component
 
 const navItems = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Orders", href: "/orders", icon: Package },
   { name: "Vehicles", href: "/vehicles", icon: Truck },
   { name: "Drivers", href: "/drivers", icon: MapPin },

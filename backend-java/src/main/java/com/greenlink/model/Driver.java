@@ -1,5 +1,6 @@
 package com.greenlink.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,6 +17,9 @@ public class Driver extends BaseEntity {
 
     @Column(nullable = false)
     private String name;
+
+    @Column
+    private String email;
 
     @Column(name = "license_id", nullable = false)
     private String licenseId;
@@ -35,4 +39,9 @@ public class Driver extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "vehicle_id")
     private Vehicle assignedVehicle;
+
+    @JsonProperty("assignedVehicleId")
+    public java.util.UUID getAssignedVehicleId() {
+        return assignedVehicle != null ? assignedVehicle.getId() : null;
+    }
 }

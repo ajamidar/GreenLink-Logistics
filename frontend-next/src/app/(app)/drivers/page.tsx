@@ -47,6 +47,7 @@ export default function DriversPage() {
 
   const handleCreateDriver = (payload: {
     name: string;
+    email: string;
     phone: string;
     licenseId: string;
     homeBase: string;
@@ -56,6 +57,7 @@ export default function DriversPage() {
     setIsSubmitting(true);
     createDriver({
       name: payload.name,
+      email: payload.email,
       phone: payload.phone,
       licenseId: payload.licenseId,
       homeBase: payload.homeBase,

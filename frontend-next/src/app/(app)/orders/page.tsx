@@ -6,7 +6,6 @@ import { fetchOrders, deleteOrder, createOrder, fetchRoutes } from "@/lib/api";
 import OrderTable from "@/components/orders/OrderTable";
 import { Plus } from "lucide-react";
 
-
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [routes, setRoutes] = useState<Route[]>([]);
@@ -72,7 +71,7 @@ export default function OrdersPage() {
     if (!confirm("Are you sure you want to delete this order?")) return;
     try {
       await deleteOrder(id);
-      setOrders(orders.filter((o) => o.id !== id)); // Optimistic update
+      setOrders(orders.filter((o) => o.id !== id));
     } catch (error) {
       alert("Failed to delete order.");
     }
@@ -199,7 +198,6 @@ export default function OrdersPage() {
                     onChange={(event) => handleFormChange("street", event.target.value)}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-emerald-500"
                     placeholder="123 Main St"
-                    required
                   />
                 </label>
                 <label className="space-y-1 text-sm text-slate-600">
@@ -210,20 +208,16 @@ export default function OrdersPage() {
                     onChange={(event) => handleFormChange("city", event.target.value)}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-emerald-500"
                     placeholder="New York"
-                    required
                   />
                 </label>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label className="space-y-1 text-sm text-slate-600">
-                  State / Region
+                  State
                   <input
                     type="text"
                     value={formState.state}
                     onChange={(event) => handleFormChange("state", event.target.value)}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-emerald-500"
                     placeholder="NY"
-                    required
                   />
                 </label>
                 <label className="space-y-1 text-sm text-slate-600">
@@ -236,52 +230,42 @@ export default function OrdersPage() {
                     placeholder="10001"
                   />
                 </label>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label className="space-y-1 text-sm text-slate-600">
                   Weight (kg)
                   <input
                     type="number"
-                    step="1"
                     value={formState.weightKg}
                     onChange={(event) => handleFormChange("weightKg", event.target.value)}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-emerald-500"
-                    placeholder="120"
-                    required
+                    placeholder="12"
                   />
                 </label>
                 <label className="space-y-1 text-sm text-slate-600">
-                  Service time (min)
+                  Service duration (min)
                   <input
                     type="number"
-                    step="1"
                     value={formState.serviceDurationMin}
                     onChange={(event) => handleFormChange("serviceDurationMin", event.target.value)}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-emerald-500"
-                    placeholder="15"
-                    required
+                    placeholder="20"
                   />
                 </label>
               </div>
 
-              {formError ? (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {formError}
-                </div>
-              ) : null}
+              {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
 
-              <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={handleCloseCreate}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
                   disabled={isSubmitting}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-70"
+                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Saving..." : "Create Order"}

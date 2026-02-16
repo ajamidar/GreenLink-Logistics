@@ -2,6 +2,7 @@ package com.greenlink.service;
 
 import com.greenlink.model.DeliveryOrder;
 import com.greenlink.repository.OrderRepository;
+import com.greenlink.security.CurrentUserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -12,25 +13,28 @@ import java.util.UUID;
 @Service
 public class OrderService {
 
-    private static final UUID DEFAULT_ORG_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final String DEFAULT_STATUS = "UNASSIGNED";
 
     private final OrderRepository orderRepository;
     private final GeocodingService geocodingService;
+    private final CurrentUserService currentUserService;
 
-    public OrderService(OrderRepository orderRepository, GeocodingService geocodingService) {
+    public OrderService(
+            OrderRepository orderRepository,
+            GeocodingService geocodingService,
+            CurrentUserService currentUserService
+    ) {
         this.orderRepository = orderRepository;
         this.geocodingService = geocodingService;
+        this.currentUserService = currentUserService;
     }
 
     public List<DeliveryOrder> getAllOrders() {
-        return orderRepository.findAll();
+        return orderRepository.findByOrganizationId(currentUserService.requireOrganizationId());
     }
 
     public DeliveryOrder createOrder(DeliveryOrder order) {
-        if (order.getOrganizationId() == null) {
-            order.setOrganizationId(DEFAULT_ORG_ID);
-        }
+        order.setOrganizationId(currentUserService.requireOrganizationId());
 
         if (order.getStatus() == null) {
             order.setStatus(DEFAULT_STATUS);
@@ -79,10 +83,11 @@ public class OrderService {
     }
 
     public void deleteOrder(java.util.UUID orderId) {
-        if (!orderRepository.existsById(orderId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found.");
-        }
+        DeliveryOrder order = orderRepository.findByIdAndOrganizationId(
+                orderId,
+                currentUserService.requireOrganizationId()
+        ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found."));
 
-        orderRepository.deleteById(orderId);
+        orderRepository.delete(order);
     }
 }
