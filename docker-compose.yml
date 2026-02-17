@@ -10,19 +10,6 @@ services:
       - ./osrm-data:/data
     command: "osrm-routed --algorithm mld /data/new-york.osrm"
 
-  postgres:
-    image: postgres:15-alpine
-    container_name: greenlink_db
-    environment:
-      POSTGRES_DB: greenlink
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password123
-    ports:
-      - "5433:5432" 
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: always
-
   adminer:
     image: adminer
     restart: always
@@ -43,15 +30,14 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/greenlink
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: password123
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       APP_CORS_ALLOWED_ORIGINS: http://localhost:3000
-      APP_OSRM_BASE_URL: http://osrm:5000
-      APP_SOLVER_BASE_URL: http://backend-python:8000
+      APP_OSRM_BASE_URL: ${APP_OSRM_BASE_URL}
+      APP_SOLVER_BASE_URL: ${APP_SOLVER_BASE_URL}
       JWT_SECRET: ChangeMeToA32ByteMinimumSecretKey123456
     depends_on:
-      - postgres
       - backend-python
       - osrm
 
@@ -66,5 +52,3 @@ services:
     depends_on:
       - backend-java
 
-volumes:
-  postgres_data:
