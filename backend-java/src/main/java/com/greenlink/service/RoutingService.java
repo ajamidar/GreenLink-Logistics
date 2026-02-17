@@ -17,6 +17,7 @@ import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.net.http.HttpClient;
 import java.util.ArrayList;
@@ -38,7 +39,8 @@ public class RoutingService {
     public RoutingService(VehicleRepository vehicleRepository,
                           OrderRepository orderRepository,
                           RouteRepository routeRepository,
-                          CurrentUserService currentUserService) {
+                          CurrentUserService currentUserService,
+                          @Value("${app.solver.base-url:http://127.0.0.1:8000}") String solverBaseUrl) {
         this.vehicleRepository = vehicleRepository;
         this.orderRepository = orderRepository;
         this.routeRepository = routeRepository;
@@ -54,7 +56,7 @@ public class RoutingService {
 
         // Pointing to your Python FastAPI server
         this.restClient = RestClient.builder()
-                .baseUrl("http://127.0.0.1:8000")
+            .baseUrl(solverBaseUrl)
                 .requestFactory(requestFactory)
                 .build();
     }

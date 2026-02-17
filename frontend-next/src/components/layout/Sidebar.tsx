@@ -72,13 +72,15 @@ export default function Sidebar() {
 
   const routeStatsByVehicleId = routes.reduce((acc, route) => {
     const vehicleId = route.vehicleId || route.vehicle?.id;
-    if (!vehicleId || !route.orders || route.orders.length === 0) {
+    const orders = route.orders ?? [];
+    if (!vehicleId || orders.length === 0) {
       return acc;
     }
 
-    const total = route.orders.length;
-    const delivered = route.orders.filter((order) => order.status === "DELIVERED").length;
-    acc.set(vehicleId, { total, delivered });
+    const delivered = orders.filter((order) => {
+      return typeof order === "object" && order !== null && "status" in order && order.status === "DELIVERED";
+    }).length;
+    acc.set(vehicleId, { total: orders.length, delivered });
     return acc;
   }, new globalThis.Map<string, { total: number; delivered: number }>());
 
