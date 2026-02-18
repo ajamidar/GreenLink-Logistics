@@ -1,7 +1,8 @@
 import axios from "axios";
 import { AccountProfile, Driver, Order, Route, Vehicle } from "./types";
 
-const API_BASE_URL = 'http://localhost:8080/api';
+const apiRoot = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+const API_BASE_URL = `${apiRoot.replace(/\/$/, "")}/api`;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
