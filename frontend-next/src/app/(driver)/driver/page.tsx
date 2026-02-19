@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { fetchAccountProfile, fetchDriverRoute, markOrderDelivered } from "@/lib/api";
 import { Route, Order } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { CheckCircle2, MapPin } from "lucide-react";
+import { CheckCircle2, MapPin, Navigation } from "lucide-react";
 import Link from "next/link";
 
 const Map = dynamic(() => import("@/components/dashboard/Map"), {
@@ -117,6 +117,14 @@ export default function DriverPortalPage() {
     }
   };
 
+  const openDirections = (order: Order) => {
+    const destination = order.address 
+      ? encodeURIComponent(order.address)
+      : `${order.latitude},${order.longitude}`;
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+    window.open(url, '_blank');
+  };
+
   useEffect(() => {
     if (!focusedStopId) {
       setFocusedStopId(nextStop?.id ?? null);
@@ -189,16 +197,24 @@ export default function DriverPortalPage() {
                 <div className="text-xs text-slate-300">
                   Est remaining time: {etaMinutes ?? "--"} min
                 </div>
-                {focusedStop.status !== "DELIVERED" ? (
+                <div className="flex gap-2">
                   <button
-                    onClick={() => handleDelivered(focusedStop.id)}
-                    className="inline-flex items-center gap-2 rounded-full bg-emerald-400 px-4 py-2 text-xs font-semibold text-slate-900"
+                    onClick={() => openDirections(focusedStop)}
+                    className="inline-flex items-center gap-2 rounded-full bg-blue-500 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-600"
                   >
-                    <CheckCircle2 size={16} /> Mark delivered
+                    <Navigation size={16} /> Directions
                   </button>
-                ) : (
-                  <div className="text-xs text-emerald-200">Delivered</div>
-                )}
+                  {focusedStop.status !== "DELIVERED" ? (
+                    <button
+                      onClick={() => handleDelivered(focusedStop.id)}
+                      className="inline-flex items-center gap-2 rounded-full bg-emerald-400 px-4 py-2 text-xs font-semibold text-slate-900"
+                    >
+                      <CheckCircle2 size={16} /> Mark delivered
+                    </button>
+                  ) : (
+                    <div className="text-xs text-emerald-200">Delivered</div>
+                  )}
+                </div>
               </div>
             ) : (
               <p className="mt-2 text-sm text-slate-300">All stops delivered. Nice work!</p>
@@ -234,6 +250,12 @@ export default function DriverPortalPage() {
                       <p className="text-xs text-slate-300">Status: {order.status}</p>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openDirections(order)}
+                        className="rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-600"
+                      >
+                        Directions
+                      </button>
                       {order.status !== "DELIVERED" ? (
                         <button
                           onClick={() => setFocusedStopId(order.id)}

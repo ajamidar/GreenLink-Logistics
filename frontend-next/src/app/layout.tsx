@@ -9,6 +9,12 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Green Link Logistics",
   description: "Smart Route Optimization Dashboard",
+  icons: {
+    icon: [
+      { url: "/logo.png", sizes: "32x32" },
+        { url: "/logo.png", sizes: "192x192" },
+    ],
+  },
 };
 
 // Inside src/app/layout.tsx
