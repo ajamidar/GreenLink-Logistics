@@ -64,6 +64,14 @@ public class AccountController {
     @DeleteMapping
     public ResponseEntity<Void> deleteAccount() {
         User user = currentUserService.requireUser();
+        if (user.getRole() == com.greenlink.model.Role.DRIVER) {
+            driverRepository.findByEmailAndOrganizationId(user.getUsername(), user.getOrganizationId())
+                    .ifPresent(driver -> {
+                        driver.setAssignedVehicle(null);
+                        driver.setLastCheckIn(null);
+                        driverRepository.save(driver);
+                    });
+        }
         userRepository.delete(user);
         return ResponseEntity.noContent().build();
     }
