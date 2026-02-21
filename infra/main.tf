@@ -228,3 +228,30 @@ resource "aws_instance" "app" {
     Name = "${local.name_prefix}-app"
   }
 }
+
+# Route53 Hosted Zone for DNS
+resource "aws_route53_zone" "main" {
+  name = var.domain_name
+
+  tags = {
+    Name = "${local.name_prefix}-hosted-zone"
+  }
+}
+
+# A record for root domain
+resource "aws_route53_record" "root" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = var.domain_name
+  type    = "A"
+  ttl     = 300
+  records = [aws_instance.app.public_ip]
+}
+
+# A record for www subdomain
+resource "aws_route53_record" "www" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "www.${var.domain_name}"
+  type    = "A"
+  ttl     = 300
+  records = [aws_instance.app.public_ip]
+}

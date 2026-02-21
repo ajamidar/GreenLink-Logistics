@@ -81,7 +81,19 @@ export default function Map({ orders = [], routes = [], vehicles = [], focus, fo
   const [isClient, setIsClient] = useState(false);
   const [routeGeometries, setRouteGeometries] = useState<globalThis.Map<string, [number, number][]>>(new globalThis.Map());
   const [mapKey, setMapKey] = useState(0);
-  const defaultCenter: [number, number] = [40.7128, -74.0060];
+  
+  // Calculate smart default center: nearest order, vehicle, or London
+  const defaultCenter: [number, number] = useMemo(() => {
+    if (orders.length > 0) {
+      return [orders[0].latitude, orders[0].longitude];
+    }
+    if (vehicles.length > 0 && vehicles[0].startLat && vehicles[0].startLon) {
+      return [vehicles[0].startLat, vehicles[0].startLon];
+    }
+    // Default to London if no data
+    return [51.5074, -0.1278];
+  }, [orders, vehicles]);
+
   const orderById = useMemo(
     () => new globalThis.Map(orders.map((order) => [String(order.id), order])),
     [orders]

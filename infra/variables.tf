@@ -36,3 +36,9 @@ variable "db_password" {
   description = "Postgres password"
   sensitive   = true
 }
+
+variable "domain_name" {
+  type        = string
+  description = "Domain name for the application (e.g., greenlink.website)"
+  default     = "greenlink.website"
+}
