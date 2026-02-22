@@ -3,58 +3,83 @@
 echo "=== Green Link Logistics SSL Setup ==="
 echo ""
 echo "This script will install SSL certificates using Let's Encrypt"
-echo "Make sure your DNS has propagated before running this!"
 echo ""
-read -p "Press Enter to continue or Ctrl+C to cancel..."
 
-# Install certbot
-echo "Installing certbot..."
-sudo apt-get update
-sudo apt-get install -y certbot
+# Ask for email
+read -p "Enter your email address for Let's Encrypt: " email
 
-# Stop nginx temporarily
-echo "Stopping nginx..."
+if [ -z "$email" ]; then
+    echo "Error: Email is required"
+    exit 1
+fi
+
+# Check DNS propagation
+echo ""
+echo "Checking DNS propagation..."
+if nslookup greenlink.website 2>/dev/null | grep -q "44.204.109.54"; then
+    echo "✓ DNS is properly pointing to 44.204.109.54"
+else
+    echo "⚠ DNS might not be propagated yet. This is required for SSL."
+    read -p "Continue anyway? (y/n): " cont
+    if [ "$cont" != "y" ]; then
+        exit 1
+    fi
+fi
+
+# Install certbot if not already installed
+if ! command -v certbot &> /dev/null; then
+    echo "Installing certbot..."
+    sudo apt-get update
+    sudo apt-get install -y certbot
+fi
+
+# Stop nginx temporarily to allow certbot to use port 80
+echo ""
+echo "Stopping nginx temporarily..."
 cd ~/green-link-logistics
 sudo docker-compose stop nginx
+
+sleep 2
 
 # Get SSL certificate
 echo "Obtaining SSL certificate..."
 sudo certbot certonly --standalone -d greenlink.website -d www.greenlink.website \
-  --non-interactive --agree-tos --email your-email@example.com
+  --non-interactive --agree-tos --email "$email" --expand
 
 # Check if certificate was obtained
 if [ -f /etc/letsencrypt/live/greenlink.website/fullchain.pem ]; then
     echo "✓ SSL certificate obtained successfully!"
     
-    # Update nginx configuration to enable HTTPS
-    echo "Would you like to enable HTTPS in nginx config? (y/n)"
-    read -p "> " enable_https
-    
-    if [ "$enable_https" = "y" ]; then
-        echo "Please manually uncomment the HTTPS server block in nginx/nginx.conf"
-        echo "and comment out the HTTP redirect section"
-    fi
-    
-    # Restart nginx with SSL
-    echo "Starting nginx with SSL..."
+    # Start nginx again
+    echo "Starting nginx..."
     sudo docker-compose up -d nginx
     
-    # Set up auto-renewal
+    sleep 3
+    
+    # Set up auto-renewal with cron
     echo "Setting up SSL auto-renewal..."
-    (crontab -l 2>/dev/null; echo "0 3 * * * certbot renew --quiet && docker-compose -f ~/green-link-logistics/docker-compose.yml restart nginx") | crontab -
+    renewal_cron="0 3 * * * cd ~/green-link-logistics && /usr/bin/docker-compose restart nginx"
+    (crontab -l 2>/dev/null | grep -v "docker-compose restart nginx"; echo "$renewal_cron") | crontab -
     
     echo ""
     echo "✓ SSL setup complete!"
+    echo ""
     echo "Your site is now accessible at:"
     echo "  - https://greenlink.website"
     echo "  - https://www.greenlink.website"
+    echo ""
+    echo "HTTP traffic will be redirected to HTTPS"
 else
     echo "✗ Failed to obtain SSL certificate"
-    echo "Make sure:"
-    echo "  1. DNS has propagated (check with: nslookup greenlink.website)"
-    echo "  2. Port 80 is open and accessible"
-    echo "  3. Domain points to this server's IP"
+    echo ""
+    echo "Troubleshooting:"
+    echo "  1. Check DNS: nslookup greenlink.website"
+    echo "  2. Check port 80: sudo netstat -tlnp | grep :80"
+    echo "  3. Check nginx logs: sudo docker-compose logs nginx"
+    echo "  4. Check certbot logs: sudo cat /var/log/letsencrypt/letsencrypt.log"
+    echo ""
     
     # Restart nginx anyway
+    echo "Restarting nginx..."
     sudo docker-compose up -d nginx
 fi
