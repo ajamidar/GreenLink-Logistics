@@ -77,6 +77,7 @@ function MapFocus({ focus, focusZoom }: { focus?: [number, number]; focusZoom?: 
   return null;
 }
 
+// Main Map component
 export default function Map({ orders = [], routes = [], vehicles = [], focus, focusZoom }: MapProps) {
   const [isClient, setIsClient] = useState(false);
   const [routeGeometries, setRouteGeometries] = useState<globalThis.Map<string, [number, number][]>>(new globalThis.Map());
