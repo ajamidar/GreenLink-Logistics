@@ -241,6 +241,21 @@ resource "aws_instance" "app" {
   }
 }
 
+# Elastic IP for persistent public IP address
+resource "aws_eip" "app" {
+  domain = "vpc"
+
+  tags = {
+    Name = "${local.name_prefix}-eip"
+  }
+}
+
+# Associate Elastic IP with EC2 instance
+resource "aws_eip_association" "app" {
+  instance_id   = aws_instance.app.id
+  allocation_id = aws_eip.app.id
+}
+
 # Route53 Hosted Zone for DNS
 resource "aws_route53_zone" "main" {
   name = var.domain_name
@@ -256,7 +271,7 @@ resource "aws_route53_record" "root" {
   name    = var.domain_name
   type    = "A"
   ttl     = 300
-  records = [aws_instance.app.public_ip]
+  records = [aws_eip.app.public_ip]
 }
 
 # A record for www subdomain
@@ -265,5 +280,5 @@ resource "aws_route53_record" "www" {
   name    = "www.${var.domain_name}"
   type    = "A"
   ttl     = 300
-  records = [aws_instance.app.public_ip]
+  records = [aws_eip.app.public_ip]
 }
