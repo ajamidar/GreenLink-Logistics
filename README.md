@@ -65,3 +65,8 @@ Built with a cutting-edge tech stack, GreenLink demonstrates a seamless integrat
 * **Dockerized:** Fully containerized backend (Java+Python) and frontend for consistent deployment.
 * **AWS Ready:** Configured for deployment on **AWS EC2** (Compute) and **RDS** (Database).
 * **Production Grade:** Includes structured logging, error handling, and environment configuration.
+
+### 🧑‍💻 Demo
+
+* I am attaching below a demo of the web app as because it is hosted as an EC2 instance, to prevent unnecessary billing from AWS, it is not live 24/7. 
+* [![Watch the video](https://img.youtube.com/vi/N4sF84_3fSA/maxresdefault.jpg)](https://youtu.be/N4sF84_3fSA)
