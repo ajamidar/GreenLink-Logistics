@@ -69,4 +69,6 @@ Built with a cutting-edge tech stack, GreenLink demonstrates a seamless integrat
 ### 🧑‍💻 Demo
 
 * I am attaching below a demo of the web app as because it is hosted as an EC2 instance, to prevent unnecessary billing from AWS, it is not live 24/7. 
-* [![Watch the video](https://img.youtube.com/vi/N4sF84_3fSA/maxresdefault.jpg)](https://youtu.be/N4sF84_3fSA)
+* <a href="https://youtu.be/N4sF84_3fSA" target="_blank">
+  <img src="https://img.youtube.com/vi/N4sF84_3fSA/maxresdefault.jpg" alt="Watch the video" width="600" />
+  </a>
